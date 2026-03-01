@@ -1,0 +1,72 @@
+select * from customers;
+select * from accounts;
+select * from transactions;
+select * from loan_records;
+SELECT 
+    loan_status, COUNT(*)
+FROM
+    loan_records
+WHERE
+    loan_status = 'Default';
+SELECT 
+    loan_status, COUNT(*) / SUM(loan_status) * 100.00 AS percent
+FROM
+    loan_records
+WHERE
+    loan_status = 'Default';
+SELECT 
+    c.customer_name, a.balance
+FROM
+    customers c
+        JOIN
+    accounts a ON c.customer_id = a.customer_id
+        JOIN
+    transactions t ON a.account_id = t.account_id
+WHERE
+    a.balance > 200000 OR t.amount > 100000
+GROUP BY c.customer_name , a.balance;
+SELECT 
+    c.customer_name,
+    COUNT(transaction_id) AS activity,
+    CASE
+        WHEN COUNT(transaction_id) > 3 THEN 'High activity'
+        WHEN COUNT(transaction_id) = 2 THEN 'Medium activity'
+        ELSE 'Low activity'
+    END segments
+FROM
+    customers c
+        JOIN
+    accounts a ON c.customer_id = a.customer_id
+        JOIN
+    transactions t ON a.account_id = t.account_id
+GROUP BY c.customer_id;
+SELECT 
+    a.account_type,
+    t.transaction_type,
+    SUM(t.amount) AS Total_amount
+FROM
+    accounts a
+        JOIN
+    transactions t ON a.account_id = t.account_id
+GROUP BY a.account_type , t.transaction_type;
+SELECT 
+    c.customer_id,
+    c.customer_name,
+    CASE
+        WHEN a.balance < 20000 THEN 'Low_balance'
+        WHEN a.balance < 50000 THEN 'High_balance'
+        ELSE 'Normal'
+    END AS balance_tier,
+    SUM(CASE
+        WHEN t.transaction_type = 'Debit' THEN 1
+        ELSE 0
+    END) AS Debit_frequency
+FROM
+    customers c
+        JOIN
+    accounts a ON c.customer_id = a.customer_id
+        JOIN
+    transactions t ON a.account_id = t.account_id
+        JOIN
+    loan_records l_r ON c.customer_id = l_r.customer_id
+GROUP BY customer_name , customer_id , balance_tier;
